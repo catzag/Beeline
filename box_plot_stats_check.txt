@@ -1,0 +1,55 @@
+var = 'voice_min_1_avgW'
+
+from scipy import stats
+
+mean_act = np.mean(df_msc_MK_pd_AGG_week_ACTIV[var])
+mean_cancel = np.mean(df_msc_MK_pd_AGG_week_CANCEL[var])
+
+std_act = np.std(df_msc_MK_pd_AGG_week_ACTIV[var], ddof = 1)
+std_cancel = np.std(df_msc_MK_pd_AGG_week_CANCEL[var], ddof = 1)
+
+n = df_msc_MK_pd_AGG_week_CANCEL.shape[0]
+confidence = 0.95
+# t_crit = stats.t.ppf((1 + confidence) / 2, df = n -1) # t-distr (Student);
+t_crit = stats.norm.ppf(1 - 0.05/2)                     # Norm distr;
+print('t_crit =', t_crit)
+
+margin_error_act = t_crit * std_act / np.sqrt(n)
+margin_error_cancel = t_crit * std_cancel / np.sqrt(n)
+
+print('Confidence_interval_active:', [mean_act - margin_error_act,  mean_act + margin_error_act])
+print('Confidence_interval_cancel:', [mean_cancel - margin_error_cancel,  mean_cancel + margin_error_cancel])
+
+
+# ********* Добавим точку среднего и "усы" доверительного интервала: *********
+stats_1 = {'med': mean_act,
+           'q1': mean_act - margin_error_act / 2,
+           'q3': mean_act + margin_error_act / 2,
+           'whislo': mean_act - margin_error_act,
+           'whishi': mean_act + margin_error_act,
+           'fliers': [],
+           'label': var + '(Active)',
+           'mean': mean_act
+}
+
+stats_2 = {'med': mean_cancel,
+           'q1': mean_cancel - margin_error_cancel / 2,
+           'q3': mean_cancel + margin_error_cancel / 2,
+           'whislo': mean_cancel - margin_error_cancel,
+           'whishi': mean_cancel + margin_error_cancel,
+           'fliers': [],
+           'label': var + '(Canceled)',
+           'mean': mean_cancel
+}
+
+fig, ax = plt.subplots()
+
+ax.bxp( [stats_1, stats_2], positions = [1, 2], widths = 0.6, showmeans = True)
+
+# plt.legend(['gprs_mb_3_avgW_CANCEL', 'gprs_mb_3_avgW_ACTIVE'])
+plt.grid()
+plt.show()
+# Confidence_interval_active: [7.793006230871921, 8.340503061735209]
+# Confidence_interval_cancel: [5.096929014245665, 6.0307104787545445]
+
+ 
